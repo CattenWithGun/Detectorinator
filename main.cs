@@ -48,12 +48,16 @@ public class NeuralNetwork
     Random random = new Random();
     //Input layer has 784 neurons because the AI will be detecting numbers 0-9 on a 28x28 image
     inputLayer = RandomDoubleArray(784, random);
+    //Hidden layers have 16 neurons for no real reason right now
     hiddenLayer1 = RandomDoubleArray(16, random);
     hiddenLayer2 = RandomDoubleArray(16, random);
+    //Output layer has 10 neurons because AI chooses the most activated neuron out of 0-9, to pick the number
     outputLayer = RandomDoubleArray(10, random);
+    //Weights hold the previous layer length of weights per neuron on the next layer
     inputLayerWeights = Random2DDoubleArray(784, 16, random);
     hiddenLayer1Weights = Random2DDoubleArray(16, 16, random);
     hiddenLayer2Weights = Random2DDoubleArray(16, 10, random);
+    //1 biase per neuron, except for the input layer
     inputLayerBiases = RandomDoubleArray(16, random);
     hiddenLayer1Biases = RandomDoubleArray(16, random);
     hiddenLayer2Biases = RandomDoubleArray(10, random);
