@@ -27,26 +27,8 @@ public class Program
       }
       else if(option == "make")
       {
-        //Gets the name
-        Console.Write("Enter a name for the network: ");
-        string name = Console.ReadLine();
-        while(name.Length > 20 || name.Length <= 0)
-        {
-          Console.WriteLine("Name length needs to be 1-20 characters");
-          Console.Write("Enter again: ");
-          name = Console.ReadLine();
-        }
-
-        //Finds if the user wants to use save data or make a random neural network
-        string useSaveDataString;
-        do
-        {
-          Console.Write("Do you want to use save data? (y/n): ");
-          useSaveDataString = Console.ReadLine();
-        }
-        while(useSaveDataString != "y" && useSaveDataString != "n");
-        bool useSaveData = useSaveDataString == "y";
-        
+        string name = GetNetworkName();
+        bool useSaveData = UseSaveData();
         if(useSaveData)
         {
           Console.WriteLine("unfinished");
@@ -64,6 +46,31 @@ public class Program
         ShowOptions();
       }
     }
+  }
+
+  private static string GetNetworkName()
+  {
+    Console.Write("Enter a name for the network: ");
+    string name = Console.ReadLine();
+    while(name.Length > 20 || name.Length <= 0)
+    {
+      Console.WriteLine("Name length needs to be 1-20 characters");
+      Console.Write("Enter again: ");
+      name = Console.ReadLine();
+    }
+    return name;
+  }
+
+  private static bool UseSaveData()
+  {
+    string useSaveDataString;
+    do
+    {
+      Console.Write("Do you want to use save data? (y/n): ");
+      useSaveDataString = Console.ReadLine();
+    }
+    while(useSaveDataString != "y" && useSaveDataString != "n");
+    return useSaveDataString == "y";
   }
 
   private static void ShowNetworks(List<NeuralNetwork> neuralNetworks)
