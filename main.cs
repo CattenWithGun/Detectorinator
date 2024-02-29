@@ -5,30 +5,31 @@ public class Program
 {
   public static void Main()
   {
-    List<NeuralNetwork> neuralNetworks = new List<NeuralNetwork>();
+    List<NeuralNetwork> networks = new List<NeuralNetwork>();
+    List<string> networkNames = new List<string>();
     NeuralNetwork network = new NeuralNetwork("initialNetwork");
+    Console.Clear();
+    ShowOptions();
     while(true)
     {
-      ShowOptions();
-      
       //Gets an option
-      Console.Write("Enter: ");
+      Console.Write("\nEnter: ");
       string option = Console.ReadLine();
       while(!IsOption(option))
       {
-        Console.Write("Not a command, enter again: ");
+        Console.Write("\nNot a command, enter again: ");
         option = Console.ReadLine();
       }
 
       //Finds the option and does it
       if(option == "show")
       {
-        ShowNetworks(neuralNetworks);
+        ShowNetworks(networks);
       }
       else if(option == "make")
       {
-        string name = GetNetworkName();
-        bool useSaveData = UseSaveData();
+        string name = NetworkNamePrompt(networkNames);
+        bool useSaveData = SaveDataPrompt();
         if(useSaveData)
         {
           Console.WriteLine("unfinished");
@@ -37,9 +38,14 @@ public class Program
         {
           //might need to make sure this doesn't do a memory leak
           network = new NeuralNetwork(name);
-          neuralNetworks.Add(network);
-          Console.WriteLine($"Created {network.name}");
+          networks.Add(network);
+          networkNames.Add(name);
+          Console.WriteLine($"\nCreated {network.name}");
         }
+      }
+      else if(option == "clear")
+      {
+        Console.Clear();
       }
       else if(option == "help")
       {
@@ -48,20 +54,32 @@ public class Program
     }
   }
 
-  private static string GetNetworkName()
+  private static string NetworkNamePrompt(List<string> networkNames)
   {
     Console.Write("Enter a name for the network: ");
     string name = Console.ReadLine();
-    while(name.Length > 20 || name.Length <= 0)
+    while(name.Length > 20 || name.Length <= 0 || NetworkListContainsName(networkNames, name))
     {
-      Console.WriteLine("Name length needs to be 1-20 characters");
+      Console.WriteLine("Name length needs to be 1-20 characters and not already used");
       Console.Write("Enter again: ");
       name = Console.ReadLine();
     }
     return name;
   }
 
-  private static bool UseSaveData()
+  private static bool NetworkListContainsName(List<string> networkNames, string name)
+  {
+    for(int i = 0; i < networkNames.Count; i++)
+    {
+      if(networkNames[i] == name)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static bool SaveDataPrompt()
   {
     string useSaveDataString;
     do
@@ -75,7 +93,7 @@ public class Program
 
   private static void ShowNetworks(List<NeuralNetwork> neuralNetworks)
   {
-    Console.WriteLine("Saved Neural Networks:\n");
+    Console.WriteLine("\nSaved Neural Networks:\n");
     if(neuralNetworks.Count == 0)
     {
       Console.WriteLine("No saved networks here");
@@ -95,13 +113,14 @@ public class Program
     Console.WriteLine("Store neural network:             store");
     Console.WriteLine("Make new neural network:          make");
     Console.WriteLine("Delete neural network:            delete");
+    Console.WriteLine("Clear the screen:                 clear");
     Console.WriteLine("Show this dialogue again:         help");
   }
 
   private static bool IsOption(string option)
   {
     //Goes through the list of commands, and if the option is in there, return that it is a command
-    string[] commands = { "show", "train", "store", "make", "delete", "help" };
+    string[] commands = { "show", "train", "store", "make", "delete", "clear", "help" };
     for(int i = 0; i < commands.Length; i++)
     {
       if(commands[i] == option)
