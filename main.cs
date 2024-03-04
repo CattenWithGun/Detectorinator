@@ -26,6 +26,23 @@ public class Program
       {
         ShowNetworks(networks);
       }
+      else if(option == "store")
+      {
+        if(networks.Count == 0)
+        {
+          Console.WriteLine("There are no networks to store");
+          continue;
+        }
+        string nameToStore = NetworkNameStorePrompt(networkNames);
+        for(int i = 0; i < networks.Count; i++)
+        {
+          if(networks[i].name == nameToStore)
+          {
+            network = networks[i];
+          }
+        }
+        
+      }
       else if(option == "make")
       {
         string name = NetworkNamePrompt(networkNames);
@@ -43,6 +60,18 @@ public class Program
           Console.WriteLine($"\nCreated {network.name}");
         }
       }
+      else if(option == "delete")
+      {
+        string nameToDelete = NetworkNameDeletePrompt(networkNames);
+        for(int i = 0; i < networks.Count; i++)
+        {
+          if(networks[i].name == nameToDelete)
+          {
+            networks.RemoveAt(i);
+          }
+        }
+        Console.WriteLine($"\nDeleted {nameToDelete}");
+      }
       else if(option == "clear")
       {
         Console.Clear();
@@ -52,6 +81,71 @@ public class Program
         ShowOptions();
       }
     }
+  }
+
+  private static string NetworkToString(NeuralNetwork network)
+  {
+    string output = "";
+    string name = network.name;
+    string inputLayer = DoubleArrayToString(network.inputLayer);
+    string hiddenLayer1 = DoubleArrayToString(network.hiddenLayer1);
+    string hiddenLayer2 = DoubleArrayToString(network.hiddenLayer2);
+    string outputLayer = DoubleArrayToString(network.outputLayer);
+    /*
+
+    //Weights
+    public double[,] inputLayerWeights;
+    public double[,] hiddenLayer1Weights;
+    public double[,] hiddenLayer2Weights;
+
+    //Biases
+    public double[] inputLayerBiases;
+    public double[] hiddenLayer1Biases;
+    public double[] hiddenLayer2Biases;
+    */
+    
+    return output;
+  }
+
+  private static string Double2DArrayToString(double[,] double2DArray)
+  {
+    string array = "[[";
+    for(int row = 0; row < double2DArray.GetLength(0); row++)
+    {
+      for(int column = 0; column < double2DArray.GetLength(1); column++)
+      {
+        
+      }
+      array += "],";
+    }
+    array += "]";
+    return array;
+  }
+
+  private static string NetworkNameStorePrompt(List<string> networkNames)
+  {
+    Console.Write("Enter a network to store: ");
+    string nameToStore = Console.ReadLine();
+    while(!NetworkListContainsName(networkNames, nameToStore))
+    {
+      Console.WriteLine("Network wasn't in the saved networks list");
+      Console.Write("Enter again: ");
+      nameToStore = Console.ReadLine();
+    }
+    return nameToStore;
+  }
+
+  private static string NetworkNameDeletePrompt(List<string> networkNames)
+  {
+    Console.Write("Enter a network you want to delete: ");
+    string nameToDelete = Console.ReadLine();
+    while(!NetworkListContainsName(networkNames, nameToDelete))
+    {
+      Console.WriteLine("Name wasn't in the saved networks list");
+      Console.Write("Enter again: ");
+      nameToDelete = Console.ReadLine();
+    }
+    return nameToDelete;
   }
 
   private static string NetworkNamePrompt(List<string> networkNames)
@@ -132,10 +226,43 @@ public class Program
   }
 }
 
+public static class DataToString
+{
+  public static string DoubleArrayToString(double[] doubleArray)
+  {
+    string array = "[";
+    for(int i = 0; i < doubleArray.Length; i++)
+    {
+      array += Convert.ToString(doubleArray[i]) + ",";
+    }
+    array += "]";
+    return array;
+  }
+
+  public static double[] StringToDoubleArray(string stringArray)
+  {
+    string currentString = "";
+    List<double> doubles = new List<double>();
+    for(int i = 1; i < stringArray.Length; i++)
+    {
+      if(stringArray[i] == ',')
+      {
+        doubles.Add(Convert.ToDouble(currentString));
+        currentString = "";
+      }
+      else if(stringArray[i] != ']')
+      {
+        currentString += stringArray[i];
+      }
+    }
+    return doubles.ToArray();
+  }
+}
+
 public class NeuralNetwork
 {
   public string name;
-  
+
   //Layers
   public double[] inputLayer;
   public double[] hiddenLayer1;
@@ -184,7 +311,7 @@ public class NeuralNetwork
     hiddenLayer2Biases = RandomDoubleArray(10, random);
     name = constructName;
   }
-  
+
   //Makes a randomized 2D double array
   private static double[,] Random2DDoubleArray(int width, int height, Random random)
   {
