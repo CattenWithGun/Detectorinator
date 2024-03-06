@@ -28,13 +28,13 @@ public class Program
           continue;
         }
         string nameToStore = Prompts.NetworkNameStorePrompt(networkNames);
+        if(nameToStore == "exit") { continue; }
         for(int i = 0; i < networks.Count; i++)
         {
           if(networks[i].name == nameToStore)
           {
             //Serialize
             string json = networks[i].ToString();
-
             Console.WriteLine($"Saved {nameToStore} as {json}");
             break;
           }
@@ -42,26 +42,43 @@ public class Program
       }
       else if(command == "make")
       {
-        bool useSaveData = Prompts.SaveDataPrompt();
+        string useSaveDataString = Prompts.SaveDataPrompt();
+        if(useSaveDataString == "exit") { continue; }
+        bool useSaveData = useSaveDataString == "y";
         if(useSaveData)
         {
+          //Get and convert save data to an object
           Console.Write("Enter the network save data: ");
           string neuralNetworkJson = Console.ReadLine();
-
-          //Deserialize
-          network = JsonConvert.DeserializeObject<NeuralNetwork>(neuralNetworkJson);
-
+          if(neuralNetworkJson == "exit") { continue; }
+          try
+          {
+            network = JsonConvert.DeserializeObject<NeuralNetwork>(neuralNetworkJson);
+          }
+          catch
+          {
+            Console.WriteLine("Error reading save data");
+            continue;
+          }
+          
+          //If there is already a network with the name, make the user make a new one
           if(Checks.NetworkListContainsName(networkNames, network.name))
           {
-            Console.WriteLine("The save data already has a network with that name");
-            network.name = Prompts.NetworkNamePrompt(networkNames);
+            Console.WriteLine("There is already a network with that name");
+            string name = Prompts.NetworkNamePrompt(networkNames);
+            if(name == "exit") { continue; }
+            network.name = name;
           }
+
+          //Update the lists
+          networkNames.Add(network.name);
           networks.Add(network);
           Console.WriteLine($"{network.name} created from save data");
         }
         else
         {
           string name = Prompts.NetworkNamePrompt(networkNames);
+          if(name == "exit") { continue; }
           network = new NeuralNetwork(name);
           networks.Add(network);
           networkNames.Add(name);
@@ -70,7 +87,15 @@ public class Program
       }
       else if(command == "delete")
       {
+        if(networks.Count == 0)
+        {
+          Console.WriteLine("There are no networks to delete");
+          continue;
+        }
+        
         string nameToDelete = Prompts.NetworkNameDeletePrompt(networkNames);
+        if(nameToDelete == "exit") { continue; }
+        
         for(int i = 0; i < networks.Count; i++)
         {
           if(networks[i].name == nameToDelete)
@@ -113,6 +138,7 @@ public class Program
     Console.WriteLine("Store neural network:             store");
     Console.WriteLine("Make new neural network:          make");
     Console.WriteLine("Delete neural network:            delete");
+    Console.WriteLine("Exits out of a prompt:            exit");
     Console.WriteLine("Clear the screen:                 clear");
     Console.WriteLine("Show this dialogue again:         help");
   }
@@ -165,11 +191,13 @@ public static class Prompts
   {
     Console.Write("Enter a network to store: ");
     string nameToStore = Console.ReadLine();
+    if(nameToStore == "exit") { return "exit"; }
     while(!Checks.NetworkListContainsName(networkNames, nameToStore))
     {
       Console.WriteLine("Network wasn't in the saved networks list");
       Console.Write("Enter again: ");
       nameToStore = Console.ReadLine();
+      if(nameToStore == "exit") { return "exit"; }
     }
     return nameToStore;
   }
@@ -178,11 +206,13 @@ public static class Prompts
   {
     Console.Write("Enter a network you want to delete: ");
     string nameToDelete = Console.ReadLine();
+    if(nameToDelete == "exit") { return "exit"; }
     while(!Checks.NetworkListContainsName(networkNames, nameToDelete))
     {
       Console.WriteLine("Name wasn't in the saved networks list");
       Console.Write("Enter again: ");
       nameToDelete = Console.ReadLine();
+      if(nameToDelete == "exit") { return "exit"; }
     }
     return nameToDelete;
   }
@@ -191,25 +221,28 @@ public static class Prompts
   {
     Console.Write("Enter a name for the network: ");
     string name = Console.ReadLine();
+    if(name == "exit") { return "exit"; }
     while(name.Length > 20 || name.Length <= 0 || Checks.NetworkListContainsName(networkNames, name))
     {
       Console.WriteLine("Name length needs to be 1-20 characters and not already used");
       Console.Write("Enter again: ");
       name = Console.ReadLine();
+      if(name == "exit") { return "exit"; }
     }
     return name;
   }
 
-  public static bool SaveDataPrompt()
+  public static string SaveDataPrompt()
   {
     string useSaveDataString;
     do
     {
       Console.Write("Do you want to use save data? (y/n): ");
       useSaveDataString = Console.ReadLine();
+      if(useSaveDataString == "exit") { return "exit"; }
     }
     while(useSaveDataString != "y" && useSaveDataString != "n");
-    return useSaveDataString == "y";
+    return useSaveDataString;
   }
 }
 
