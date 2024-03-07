@@ -1,5 +1,6 @@
 using ErrorChecks;
 using NeuralNetworking;
+using NetworkTraining;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,29 @@ namespace Actions
 {
   public static class Commands
   {
+    public static void Train(List<NeuralNetwork> networks, List<string> networkNames)
+    {
+      if(networks.Count == 0)
+      {
+        Console.WriteLine("There are no networks to delete");
+        return;
+      }
+
+      //Get the name of the network to be trained
+      string nameToTrain = Prompts.NetworkNameTrainPrompt(networkNames);
+      if(nameToTrain == "exit") { return; }
+
+      //Find the network in the list and train it
+      for(int i = 0; i < networks.Count; i++)
+      {
+        if(networks[i].name == nameToTrain)
+        {
+          NeuralNetwork network = Training.TrainNetwork(networks[i]);
+          return;
+        }
+      }
+    }
+    
     public static void Delete(List<NeuralNetwork> networks, List<string> networkNames)
     {
       if(networks.Count == 0)
