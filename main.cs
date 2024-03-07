@@ -1,5 +1,6 @@
 using Actions;
 using NeuralNetworking;
+using NetworkTraining;
 using System;
 using System.Collections.Generic;
 using UserPrompts;
@@ -25,6 +26,10 @@ public class Program
       if(command == "show")
       {
         Commands.ShowNetworks(networks);
+      }
+      else if(command == "train")
+      {
+        Commands.Train(networks, networkNames);
       }
       else if(command == "store")
       {
