@@ -1,6 +1,5 @@
 using Actions;
 using NeuralNetworking;
-using NetworkTraining;
 using System;
 using System.Collections.Generic;
 using UserPrompts;
