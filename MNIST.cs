@@ -115,6 +115,19 @@ namespace MNIST
       return finalArray;
     }
 
+    public static byte[] ImageToByteArray(byte[,,] images, int index)
+    {
+      byte[] finalArray = new byte[784];
+      for(int heightIndex = 0; heightIndex < 28; heightIndex++)
+      {
+        for(int widthIndex = 0; widthIndex < 28; widthIndex++)
+        {
+          finalArray[heightIndex * 28 + widthIndex] = images[index, heightIndex, widthIndex];
+        }
+      }
+      return finalArray;
+    }
+
     private static string ConvertToPixel(string number)
     {
       byte shade = Convert.ToByte(number);
