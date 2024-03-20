@@ -20,7 +20,6 @@ public class Program
     while(true)
     {
       string command = Prompts.CommandPrompt();
-
       //Finds the option and does it
       if(command == "show")
       {
