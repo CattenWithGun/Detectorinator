@@ -140,7 +140,7 @@ namespace NeuralNetworking
         network.outputLayer[neuronIndex] = currentStep;
       }
 
-      //Finds the highest value in the output layer to determine the most probable number the image represents
+      //Returns the outputLayer
       return network.outputLayer;
     }
   }
