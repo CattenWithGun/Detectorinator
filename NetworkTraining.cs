@@ -1,6 +1,7 @@
 using MNIST;
 using NeuralNetworking;
 using System;
+using System.Linq;
 
 namespace NetworkTraining
 {
@@ -16,7 +17,9 @@ namespace NetworkTraining
       {
         int imageIndex = random.Next(0, 9999);
         MNISTFileHandler.WriteImage(imageIndex, images, labels);
-        Console.WriteLine($"The network thinks that the image is a {network.FeedForward(MNISTFileHandler.ImageToByteArray(images, imageIndex), network)}");
+        double[] outputLayer = network.FeedForward(MNISTFileHandler.ImageToByteArray(images, imageIndex), network);
+        byte guess = Convert.ToByte(network.outputLayer.ToList().IndexOf(network.outputLayer.Max()));
+        Console.WriteLine($"The network thinks that the image is a {guess}");
         Console.ReadLine();
       }
       return network;
