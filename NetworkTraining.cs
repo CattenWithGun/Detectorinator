@@ -14,17 +14,12 @@ namespace NetworkTraining
       Random random = new Random();
       while(true)
       {
-        MNISTFileHandler.WriteImage(random.Next(0, 9999), images, labels);
+        int imageIndex = random.Next(0, 9999);
+        MNISTFileHandler.WriteImage(imageIndex, images, labels);
+        Console.WriteLine($"The network thinks that the image is a {network.FeedForward(MNISTFileHandler.ImageToByteArray(images, imageIndex), network)}");
         Console.ReadLine();
       }
       return network;
-    }
-
-    //Sigmoid function for squishing any value between 0 and 1
-    private static double Sigmoid(double value)
-    {
-      double k = Math.Exp(value);
-      return k / (1 + k);
     }
   }
 }
