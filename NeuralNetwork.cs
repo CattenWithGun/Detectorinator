@@ -1,3 +1,4 @@
+using MNIST;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
@@ -50,11 +51,11 @@ namespace NeuralNetworking
       outputLayer = new double[10];
 
       Random random = new Random();
-      
+
       inputLayerWeights = Random2DDoubleArray(784, 16, random);
       hiddenLayer1Weights = Random2DDoubleArray(16, 16, random);
       hiddenLayer2Weights = Random2DDoubleArray(16, 10, random);
-      
+
       inputLayerBiases = RandomDoubleArray(16, random);
       hiddenLayer1Biases = RandomDoubleArray(16, random);
       hiddenLayer2Biases = RandomDoubleArray(10, random);
@@ -92,14 +93,14 @@ namespace NeuralNetworking
     }
 
     //Finds what the network thinks the image is
-    public byte FeedForward(byte[] inputLayerBytes, NeuralNetwork network)
+    public double[] FeedForward(byte[] inputLayerBytes, NeuralNetwork network)
     {
       //Turns the inputLayerBytes into doubles and puts them in the network's inputLayer
       for(int i = 0; i < network.inputLayer.Length; i++)
       {
         network.inputLayer[i] = Convert.ToDouble(inputLayerBytes[i]) / 255;
       }
-      
+
       //Feed forward to hiddenLayer1
       for(int neuronIndex = 0; neuronIndex < network.hiddenLayer1.Length; neuronIndex++)
       {
@@ -138,9 +139,9 @@ namespace NeuralNetworking
         currentStep = Math.Tanh(currentStep);
         network.outputLayer[neuronIndex] = currentStep;
       }
-      
+
       //Finds the highest value in the output layer to determine the most probable number the image represents
-      return Convert.ToByte(network.outputLayer.ToList().IndexOf(network.outputLayer.Max()));
+      return network.outputLayer;
     }
   }
 }
