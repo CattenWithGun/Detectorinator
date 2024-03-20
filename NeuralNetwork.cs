@@ -44,11 +44,12 @@ namespace NeuralNetworking
     //If no neuron information about the network is given, generate random weights and biases
     public NeuralNetwork(string argumentName)
     {
+      inputLayer = new double[784];
+      hiddenLayer1 = new double[16];
+      hiddenLayer2 = new double[16];
+      outputLayer = new double[10];
+
       Random random = new Random();
-      inputLayer = RandomDoubleArray(784, random);
-      hiddenLayer1 = RandomDoubleArray(16, random);
-      hiddenLayer2 = RandomDoubleArray(16, random);
-      outputLayer = RandomDoubleArray(10, random);
       
       inputLayerWeights = Random2DDoubleArray(784, 16, random);
       hiddenLayer1Weights = Random2DDoubleArray(16, 16, random);
@@ -73,7 +74,7 @@ namespace NeuralNetworking
       {
         for(int y = 0; y < height; y++)
         {
-          random2DDoubleArray[y,x] = random.NextDouble();
+          random2DDoubleArray[y,x] = random.NextDouble() * ((1) - (-1)) + (-1);
         }
       }
       return random2DDoubleArray;
@@ -85,32 +86,17 @@ namespace NeuralNetworking
       double[] randomDoubleArray = new double[length];
       for(int i = 0; i < length; i++)
       {
-        randomDoubleArray[i] = random.NextDouble();
+        randomDoubleArray[i] = random.NextDouble() * ((1) - (-1)) + (-1);
       }
       return randomDoubleArray;
     }
 
-    //Sigmoid function for squishing any value between 0 and 1 using doubles
-    private static double Sigmoid(double value)
-    {
-      double k = Math.Exp(value);
-      return k / (1 + k);
-    }
-
-    //Sigmoid function for squishing any value between 0 and 1 using bytes
-    private static double Sigmoid(byte valueByte)
-    {
-      double value = Convert.ToDouble(valueByte);
-      double k = Math.Exp(value);
-      return k / (1 + k);
-    }
-
+    //Finds what the network thinks the image is
     public byte FeedForward(byte[] inputLayerBytes, NeuralNetwork network)
     {
       //Turns the inputLayerBytes into doubles and puts them in the network's inputLayer
       for(int i = 0; i < network.inputLayer.Length; i++)
       {
-        //network.inputLayer[i] = Sigmoid(inputLayerBytes[i]);
         network.inputLayer[i] = Convert.ToDouble(inputLayerBytes[i]) / 255;
       }
       
@@ -120,10 +106,10 @@ namespace NeuralNetworking
         double currentStep = 0;
         for(int weightIndex = 0; weightIndex < network.inputLayer.Length; weightIndex++)
         {
-          currentStep += (network.inputLayerWeights[neuronIndex, weightIndex] * inputLayer[weightIndex]);
+          currentStep += network.inputLayerWeights[neuronIndex, weightIndex] * network.inputLayer[weightIndex];
         }
         currentStep += network.inputLayerBiases[neuronIndex];
-        currentStep = Sigmoid(currentStep);
+        currentStep = Math.Tanh(currentStep);
         network.hiddenLayer1[neuronIndex] = currentStep;
       }
 
@@ -133,10 +119,10 @@ namespace NeuralNetworking
         double currentStep = 0;
         for(int weightIndex = 0; weightIndex < network.hiddenLayer1.Length; weightIndex++)
         {
-          currentStep += (network.hiddenLayer1Weights[neuronIndex, weightIndex] * hiddenLayer1[weightIndex]);
+          currentStep += network.hiddenLayer1Weights[neuronIndex, weightIndex] * network.hiddenLayer1[weightIndex];
         }
         currentStep += network.hiddenLayer1Biases[neuronIndex];
-        currentStep = Sigmoid(currentStep);
+        currentStep = Math.Tanh(currentStep);
         network.hiddenLayer2[neuronIndex] = currentStep;
       }
 
@@ -146,10 +132,10 @@ namespace NeuralNetworking
         double currentStep = 0;
         for(int weightIndex = 0; weightIndex < network.hiddenLayer2.Length; weightIndex++)
         {
-          currentStep += (network.hiddenLayer2Weights[neuronIndex, weightIndex] * hiddenLayer2[weightIndex]);
+          currentStep += network.hiddenLayer2Weights[neuronIndex, weightIndex] * network.hiddenLayer2[weightIndex];
         }
         currentStep += network.hiddenLayer2Biases[neuronIndex];
-        currentStep = Sigmoid(currentStep);
+        currentStep = Math.Tanh(currentStep);
         network.outputLayer[neuronIndex] = currentStep;
       }
       
