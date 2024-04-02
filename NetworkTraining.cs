@@ -16,10 +16,11 @@ namespace NetworkTraining
       while(true)
       {
         int imageIndex = random.Next(0, 9999);
-        MNISTFileHandler.WriteImage(imageIndex, images, labels);
-        double[] outputLayer = network.FeedForward(MNISTFileHandler.ImageToByteArray(images, imageIndex), network);
+		MNISTFileHandler.WriteImage(imageIndex, images, labels);
+		double[] outputLayer = network.FeedForward(network, MNISTFileHandler.ImageToByteArray(images, imageIndex));
+		//network = network.BackPropagate(network, MNISTFileHandler.LabelToExpectedValues(labels[imageIndex]));
         byte guess = Convert.ToByte(network.outputLayer.ToList().IndexOf(network.outputLayer.Max()));
-        Console.WriteLine($"The network thinks that the image is a {guess}");
+		Console.WriteLine($"The network guessed {guess}");
         Console.ReadLine();
       }
       return network;
