@@ -32,7 +32,7 @@ namespace Actions
         }
       }
     }
-    
+
     public static void Delete(List<NeuralNetwork> networks, List<string> networkNames)
     {
       if(networks.Count == 0)
