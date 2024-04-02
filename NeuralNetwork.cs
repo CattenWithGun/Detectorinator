@@ -1,7 +1,5 @@
-using MNIST;
 using Newtonsoft.Json;
 using System;
-using System.Linq;
 
 namespace NeuralNetworking
 {
@@ -21,13 +19,13 @@ namespace NeuralNetworking
     public double[,] hiddenLayer2Weights;
 
     //Biases
-    public double[] inputLayerBiases;
-    public double[] hiddenLayer1Biases;
-    public double[] hiddenLayer2Biases;
+    public double inputLayerBiase;
+    public double hiddenLayer1Biase;
+    public double hiddenLayer2Biase;
 
     //Creates neural network with saved data
     [JsonConstructor]
-    public NeuralNetwork(double[] argumentInputLayer, double[] argumentHiddenLayer1, double[] argumentHiddenLayer2, double[] argumentOutputLayer, double[,] argumentInputLayerWeights, double[,] argumentHiddenLayer1Weights, double[,] argumentHiddenLayer2Weights, double[] argumentInputLayerBiases, double[] argumentHiddenLayer1Biases, double[] argumentHiddenLayer2Biases, string argumentName)
+    public NeuralNetwork(double[] argumentInputLayer, double[] argumentHiddenLayer1, double[] argumentHiddenLayer2, double[] argumentOutputLayer, double[,] argumentInputLayerWeights, double[,] argumentHiddenLayer1Weights, double[,] argumentHiddenLayer2Weights, double argumentInputLayerBiase, double argumentHiddenLayer1Biase, double argumentHiddenLayer2Biase, string argumentName)
     {
       inputLayer = argumentInputLayer;
       hiddenLayer1 = argumentHiddenLayer1;
@@ -36,9 +34,9 @@ namespace NeuralNetworking
       inputLayerWeights = argumentInputLayerWeights;
       hiddenLayer1Weights = argumentHiddenLayer1Weights;
       hiddenLayer2Weights = argumentHiddenLayer2Weights;
-      inputLayerBiases = argumentInputLayerBiases;
-      hiddenLayer1Biases = argumentHiddenLayer1Biases;
-      hiddenLayer2Biases = argumentHiddenLayer2Biases;
+      inputLayerBiase = argumentInputLayerBiase;
+      hiddenLayer1Biase = argumentHiddenLayer1Biase;
+      hiddenLayer2Biase = argumentHiddenLayer2Biase;
       name = argumentName;
     }
 
@@ -56,9 +54,10 @@ namespace NeuralNetworking
       hiddenLayer1Weights = Random2DDoubleArray(16, 16, random);
       hiddenLayer2Weights = Random2DDoubleArray(16, 10, random);
 
-      inputLayerBiases = RandomDoubleArray(16, random);
-      hiddenLayer1Biases = RandomDoubleArray(16, random);
-      hiddenLayer2Biases = RandomDoubleArray(10, random);
+	  //Goofy numbers are making a random double between -1 and 1
+      inputLayerBiase = random.NextDouble() * ((1) - (-1)) + (-1);
+      hiddenLayer1Biase = random.NextDouble() * ((1) - (-1)) + (-1);
+      hiddenLayer2Biase = random.NextDouble() * ((1) - (-1)) + (-1);
       name = argumentName;
     }
 
@@ -81,19 +80,8 @@ namespace NeuralNetworking
       return random2DDoubleArray;
     }
 
-    //Makes a randomized double array
-    private static double[] RandomDoubleArray(int length, Random random)
-    {
-      double[] randomDoubleArray = new double[length];
-      for(int i = 0; i < length; i++)
-      {
-        randomDoubleArray[i] = random.NextDouble() * ((1) - (-1)) + (-1);
-      }
-      return randomDoubleArray;
-    }
-
     //Finds what the network thinks the image is
-    public double[] FeedForward(byte[] inputLayerBytes, NeuralNetwork network)
+    public double[] FeedForward(NeuralNetwork network, byte[] inputLayerBytes)
     {
       //Turns the inputLayerBytes into doubles and puts them in the network's inputLayer
       for(int i = 0; i < network.inputLayer.Length; i++)
@@ -109,7 +97,7 @@ namespace NeuralNetworking
         {
           currentStep += network.inputLayerWeights[neuronIndex, weightIndex] * network.inputLayer[weightIndex];
         }
-        currentStep += network.inputLayerBiases[neuronIndex];
+        currentStep += network.inputLayerBiase;
         currentStep = Math.Tanh(currentStep);
         network.hiddenLayer1[neuronIndex] = currentStep;
       }
@@ -122,7 +110,7 @@ namespace NeuralNetworking
         {
           currentStep += network.hiddenLayer1Weights[neuronIndex, weightIndex] * network.hiddenLayer1[weightIndex];
         }
-        currentStep += network.hiddenLayer1Biases[neuronIndex];
+        currentStep += network.hiddenLayer1Biase;
         currentStep = Math.Tanh(currentStep);
         network.hiddenLayer2[neuronIndex] = currentStep;
       }
@@ -135,13 +123,67 @@ namespace NeuralNetworking
         {
           currentStep += network.hiddenLayer2Weights[neuronIndex, weightIndex] * network.hiddenLayer2[weightIndex];
         }
-        currentStep += network.hiddenLayer2Biases[neuronIndex];
+        currentStep += network.hiddenLayer2Biase;
         currentStep = Math.Tanh(currentStep);
         network.outputLayer[neuronIndex] = currentStep;
       }
 
       //Returns the outputLayer
       return network.outputLayer;
+    }
+
+    public double Error(NeuralNetwork network, byte[] inputLayerBytes, byte expectedValueByte)
+    {
+      double[] outputLayer = network.FeedForward(network, inputLayerBytes);
+      double[] errors = new double[network.outputLayer.Length];
+      double error = 0;
+      for(int i = 0; i < errors.Length; i++)
+      {
+        int expectedValue = Convert.ToInt32(i == Convert.ToInt32(expectedValueByte));
+        errors[i] = 0.5 * Math.Pow(expectedValue - outputLayer[i], 2);
+        error += errors[i];
+      }
+      return error;
+    }
+
+    private void ShowDoubles(string message, double[,] doubles)
+    {
+      string row = "";
+      Console.WriteLine(message);
+      for(int height = 0; height < doubles.GetLength(0); height++)
+      {
+        for(int width = 0; width < doubles.GetLength(1); width++)
+        {
+          row += Convert.ToString(doubles[height, width]) + ", ";
+        }
+        Console.WriteLine(row);
+        row = "";
+      }
+    }
+
+    public NeuralNetwork BackPropagate(NeuralNetwork network, double[] expectedValues)
+    {
+      ShowDoubles("Original Weights:", network.hiddenLayer2Weights);
+
+      //Finds how much the total error changes with respect to the outputs
+      double[] errorWithOutputs = new double[network.outputLayer.Length];
+      for(int i = 0; i < errorWithOutputs.Length; i++)
+	  {
+		  errorWithOutputs[i] = network.outputLayer[i] - expectedValues[i];
+	  }
+
+	  //Finds how much the outputs change with respect to the tanh function
+	  double[] outputsWithTanh = new double[network.outputLayer.Length];
+	  for(int i = 0; i < outputsWithTanh.Length; i++)
+	  {
+		outputsWithTanh[i] = 1 - (Math.Pow(Math.Tanh(network.outputLayer[i]), 2));
+	  }
+
+	  //Finds how much input to tanh changes with respect to the weights
+	  //double[]
+	  
+      ShowDoubles("New Weights:", network.hiddenLayer2Weights);
+      return network;
     }
   }
 }
