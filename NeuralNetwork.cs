@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 using System;
+using System.Linq;
 
 namespace NeuralNetworking
 {
@@ -132,6 +133,12 @@ namespace NeuralNetworking
       return network.outputLayer;
     }
 
+    public byte FeedForwardAndGetGuess(NeuralNetwork network, byte[] inputLayerBytes)
+    {
+      double[] outputLayer = network.FeedForward(network, inputLayerBytes);
+      return Convert.ToByte(network.outputLayer.ToList().IndexOf(network.outputLayer.Max()));
+    }
+
     public double Error(NeuralNetwork network, byte[] inputLayerBytes, byte expectedValueByte)
     {
       double[] outputLayer = network.FeedForward(network, inputLayerBytes);
@@ -163,26 +170,33 @@ namespace NeuralNetworking
 
     public NeuralNetwork BackPropagate(NeuralNetwork network, double[] expectedValues)
     {
-      ShowDoubles("Original Weights:", network.hiddenLayer2Weights);
+      //ShowDoubles("Original Weights:", network.hiddenLayer2Weights);
 
       //Finds how much the total error changes with respect to the outputs
       double[] errorWithOutputs = new double[network.outputLayer.Length];
       for(int i = 0; i < errorWithOutputs.Length; i++)
-	  {
-		  errorWithOutputs[i] = network.outputLayer[i] - expectedValues[i];
-	  }
+  	  {
+  		  errorWithOutputs[i] = network.outputLayer[i] - expectedValues[i];
+  	  }
+  
+  	  //Finds how much the outputs change with respect to the tanh function
+  	  double[] outputsWithTanh = new double[network.outputLayer.Length];
+  	  for(int i = 0; i < outputsWithTanh.Length; i++)
+  	  {
+  		  outputsWithTanh[i] = 1 - (Math.Pow(Math.Tanh(network.outputLayer[i]), 2));
+  	  }
+  
+  	  //Changes the hiddenLayer2 weights with information on how they change the error
+      double learningRate = 0.5;
+      for(int outputLayerIndex = 0; outputLayerIndex < network.outputLayer.Length; outputLayerIndex++)
+      {
+        for(int hiddenLayer2Index = 0; hiddenLayer2Index < network.hiddenLayer2.Length; hiddenLayer2Index++)
+        {
+          network.hiddenLayer2Weights[outputLayerIndex, hiddenLayer2Index] -= learningRate * (errorWithOutputs[outputLayerIndex] * outputsWithTanh[outputLayerIndex] * network.hiddenLayer2[hiddenLayer2Index]);
+        }
+      }
 
-	  //Finds how much the outputs change with respect to the tanh function
-	  double[] outputsWithTanh = new double[network.outputLayer.Length];
-	  for(int i = 0; i < outputsWithTanh.Length; i++)
-	  {
-		outputsWithTanh[i] = 1 - (Math.Pow(Math.Tanh(network.outputLayer[i]), 2));
-	  }
-
-	  //Finds how much input to tanh changes with respect to the weights
-	  //double[]
-	  
-      ShowDoubles("New Weights:", network.hiddenLayer2Weights);
+      //ShowDoubles("New Weights:", network.hiddenLayer2Weights);
       return network;
     }
   }
