@@ -170,8 +170,8 @@ namespace NeuralNetworking
 
     public NeuralNetwork BackPropagate(NeuralNetwork network, double[] expectedValues)
     {
-      //ShowDoubles("Original Weights:", network.hiddenLayer2Weights);
-
+      double learningRate = 0.5;
+      
       //Finds how much the total error changes with respect to the outputs
       double[] errorWithOutputs = new double[network.outputLayer.Length];
       for(int i = 0; i < errorWithOutputs.Length; i++)
@@ -187,16 +187,23 @@ namespace NeuralNetworking
   	  }
   
   	  //Changes the hiddenLayer2 weights with information on how they change the error
-      double learningRate = 0.5;
+      double[,] newHiddenLayer2Weights = network.hiddenLayer2Weights;
       for(int outputLayerIndex = 0; outputLayerIndex < network.outputLayer.Length; outputLayerIndex++)
       {
         for(int hiddenLayer2Index = 0; hiddenLayer2Index < network.hiddenLayer2.Length; hiddenLayer2Index++)
         {
-          network.hiddenLayer2Weights[outputLayerIndex, hiddenLayer2Index] -= learningRate * (errorWithOutputs[outputLayerIndex] * outputsWithTanh[outputLayerIndex] * network.hiddenLayer2[hiddenLayer2Index]);
+          newHiddenLayer2Weights[outputLayerIndex, hiddenLayer2Index] -= learningRate * (errorWithOutputs[outputLayerIndex] * outputsWithTanh[outputLayerIndex] * network.hiddenLayer2[hiddenLayer2Index]);
         }
       }
 
-      //ShowDoubles("New Weights:", network.hiddenLayer2Weights);
+      //Sets the hiddenLayer2Weights to their new values, these aren't set earlier because the partial derivative needs all the extra values the be taken as a given, and not changed yet
+      for(int outputLayerIndex = 0; outputLayerIndex < network.outputLayer.Length; outputLayerIndex++)
+      {
+        for(int hiddenLayer2Index = 0; hiddenLayer2Index < network.hiddenLayer2.Length; hiddenLayer2Index++)
+        {
+          network.hiddenLayer2Weights[outputLayerIndex, hiddenLayer2Index] = newHiddenLayer2Weights[outputLayerIndex, hiddenLayer2Index];
+        }
+      }
       return network;
     }
   }
