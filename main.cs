@@ -29,6 +29,10 @@ public class Program
       {
         Commands.Train(networks, networkNames);
       }
+      else if(command == "test")
+      {
+        Commands.Test(networks, networkNames);
+      }
       else if(command == "store")
       {
         Commands.Store(networks, networkNames);
