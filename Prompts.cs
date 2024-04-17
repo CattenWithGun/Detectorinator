@@ -33,6 +33,21 @@ namespace UserPrompts
       return nameToTrain;
     }
 
+    public static string NetworkNameTestPrompt(List<string> networkNames)
+    {
+      Console.Write("Enter a network to test: ");
+      string nameToTest = Console.ReadLine();
+      if(nameToTest == "exit") { return "exit"; }
+      while(!Checks.NetworkListContainsName(networkNames, nameToTest))
+      {
+        Console.WriteLine("Network wasn't in the saved networks list");
+        Console.Write("Enter again: ");
+        nameToTest = Console.ReadLine();
+        if(nameToTest == "exit") { return "exit"; }
+      }
+      return nameToTest;
+    }
+
     public static string NetworkNameStorePrompt(List<string> networkNames)
     {
       Console.Write("Enter a network to store: ");
