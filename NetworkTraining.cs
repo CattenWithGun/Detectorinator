@@ -12,12 +12,10 @@ namespace NetworkTraining
       byte[] labels = MNISTFileHandler.GetLabels("/home/runner/NeuralNetwork/MNIST_Test_Database/labels");
       byte[,,] images = MNISTFileHandler.GetImages("/home/runner/NeuralNetwork/MNIST_Test_Database/images");
       Random random = new Random();
-      while(true)
+      for(int i = 0; i < labels.Length; i++)
       {
-        int imageIndex = random.Next(0, 9999);
-        double[] outputLayer = network.FeedForward(network, MNISTFileHandler.ImageToByteArray(images, imageIndex));
-        network = network.BackPropagate(network, MNISTFileHandler.LabelToExpectedValues(labels[imageIndex]));
-        Console.ReadLine();
+        double[] outputLayer = network.FeedForward(network, MNISTFileHandler.ImageToByteArray(images, i));
+        network = network.BackPropagate(network, MNISTFileHandler.LabelToExpectedValues(labels[i]));
       }
       return network;
     }
