@@ -1,3 +1,4 @@
+using BackPropagationHelper;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
@@ -171,30 +172,9 @@ namespace NeuralNetworking
     public NeuralNetwork BackPropagate(NeuralNetwork network, double[] expectedValues)
     {
       double learningRate = 0.5;
-      
-      //Finds how much the total error changes with respect to the outputs
-      double[] errorWithOutputs = new double[network.outputLayer.Length];
-      for(int i = 0; i < errorWithOutputs.Length; i++)
-  	  {
-  		  errorWithOutputs[i] = network.outputLayer[i] - expectedValues[i];
-  	  }
-  
-  	  //Finds how much the outputs change with respect to the tanh function
-  	  double[] outputsWithTanh = new double[network.outputLayer.Length];
-  	  for(int i = 0; i < outputsWithTanh.Length; i++)
-  	  {
-  		  outputsWithTanh[i] = 1 - (Math.Pow(Math.Tanh(network.outputLayer[i]), 2));
-  	  }
-  
-  	  //Changes the hiddenLayer2 weights with information on how they change the error
-      double[,] newHiddenLayer2Weights = network.hiddenLayer2Weights;
-      for(int outputLayerIndex = 0; outputLayerIndex < network.outputLayer.Length; outputLayerIndex++)
-      {
-        for(int hiddenLayer2Index = 0; hiddenLayer2Index < network.hiddenLayer2.Length; hiddenLayer2Index++)
-        {
-          newHiddenLayer2Weights[outputLayerIndex, hiddenLayer2Index] -= learningRate * (errorWithOutputs[outputLayerIndex] * outputsWithTanh[outputLayerIndex] * network.hiddenLayer2[hiddenLayer2Index]);
-        }
-      }
+      double[] errorWithOutputs = BackPropagation.ErrorWithRespectToOutputs(network, expectedValues);
+      double[] outputsWithTanh = BackPropagation.OutputsWithRespectToTanh(network);
+      double[,] newHiddenLayer2Weights = BackPropagation.NewHiddenLayer2Weights(network, learningRate, errorWithOutputs, outputsWithTanh);
 
       //Sets the hiddenLayer2Weights to their new values, these aren't set earlier because the partial derivative needs all the extra values the be taken as a given, and not changed yet
       for(int outputLayerIndex = 0; outputLayerIndex < network.outputLayer.Length; outputLayerIndex++)
