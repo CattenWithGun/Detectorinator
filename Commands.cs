@@ -70,6 +70,48 @@ namespace Actions
       }
     }
 
+    public static void PrintError(List<NeuralNetwork> networks, List<string> networkNames)
+    {
+      if(networks.Count == 0)
+      {
+        Console.WriteLine("There are no networks to get the error of");
+        return;
+      }
+
+      //Get the name of the network to be deleted
+      string nameToGetErrorOf = Prompts.NetworkNameErrorPrompt(networkNames);
+      if(nameToGetErrorOf == "exit") { return; }
+
+      //Find the network in the list and print the error of it
+      NeuralNetwork networkToGetErrorOf = new NeuralNetwork("placeholder");
+      for(int i = 0; i < networks.Count; i++)
+      {
+        if(networks[i].name == nameToGetErrorOf)
+        {
+          networkToGetErrorOf = networks[i];
+        }
+      }
+
+      //Finds the average error of the network
+      byte[] labels = MNISTFileHandler.GetLabels("/home/runner/NeuralNetwork/MNIST_Test_Database/labels");
+      byte[,,] images = MNISTFileHandler.GetImages("/home/runner/NeuralNetwork/MNIST_Test_Database/images");
+      double[] errors = new double[labels.Length];
+      for(int i = 0; i < labels.Length; i++)
+      {
+        byte[] imageBytes = MNISTFileHandler.ImageToByteArray(images, i);
+        errors[i] = networkToGetErrorOf.Error(networkToGetErrorOf, imageBytes, labels[i]);
+      }
+
+      //Prints the average error
+      double averageError = 0;
+      for(int i = 0; i < errors.Length; i++)
+      {
+        averageError += errors[i];
+      }
+      averageError /= errors.Length;      
+      Console.WriteLine($"The error of {networkToGetErrorOf.name} is: {averageError}");
+    }
+
     public static void Delete(List<NeuralNetwork> networks, List<string> networkNames)
     {
       if(networks.Count == 0)
@@ -173,6 +215,7 @@ namespace Actions
       Console.WriteLine("Show list of neural networks:     show");
       Console.WriteLine("Train neural network:             train");
       Console.WriteLine("Test the network:                 test");
+      Console.WriteLine("Get the error of the network:     error");
       Console.WriteLine("Store neural network:             store");
       Console.WriteLine("Make new neural network:          make");
       Console.WriteLine("Delete neural network:            delete");
