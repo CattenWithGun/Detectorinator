@@ -33,6 +33,10 @@ public class Program
       {
         Commands.Test(networks, networkNames);
       }
+      else if(command == "error")
+      {
+        Commands.PrintError(networks, networkNames);
+      }
       else if(command == "store")
       {
         Commands.Store(networks, networkNames);
