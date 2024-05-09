@@ -19,7 +19,7 @@ namespace ErrorChecks
     public static bool IsOption(string option)
     {
       //Goes through the list of commands, and if the option is in there, return that it is a command
-      string[] commands = { "show", "train", "test", "store", "make", "delete", "clear", "help" };
+      string[] commands = { "show", "train", "test", "error", "store", "make", "delete", "clear", "help" };
       for(int i = 0; i < commands.Length; i++)
       {
         if(commands[i] == option)
