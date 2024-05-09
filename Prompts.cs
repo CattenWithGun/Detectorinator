@@ -48,6 +48,21 @@ namespace UserPrompts
       return nameToTest;
     }
 
+    public static string NetworkNameErrorPrompt(List<string> networkNames)
+    {
+      Console.Write("Enter a network to get the error of: ");
+      string nameToGetErrorOf = Console.ReadLine();
+      if(nameToGetErrorOf == "exit") { return "exit"; }
+      while(!Checks.NetworkListContainsName(networkNames, nameToGetErrorOf))
+      {
+        Console.WriteLine("Network wasn't in the saved networks list");
+        Console.Write("Enter again: ");
+        nameToGetErrorOf = Console.ReadLine();
+        if(nameToGetErrorOf == "exit") { return "exit"; }
+      }
+      return nameToGetErrorOf;
+    }
+
     public static string NetworkNameStorePrompt(List<string> networkNames)
     {
       Console.Write("Enter a network to store: ");
