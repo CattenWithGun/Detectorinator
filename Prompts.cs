@@ -63,6 +63,21 @@ namespace UserPrompts
       return nameToGetErrorOf;
     }
 
+    public static string NetworkNameOverfitPrompt(List<string> networkNames)
+    {
+      Console.Write("Enter a network to overfit: ");
+      string nameToOverfit = Console.ReadLine();
+      if(nameToOverfit == "exit") { return "exit"; }
+      while(!Checks.NetworkListContainsName(networkNames, nameToOverfit))
+      {
+        Console.WriteLine("Network wasn't in the saved networks list");
+        Console.Write("Enter again: ");
+        nameToOverfit = Console.ReadLine();
+        if(nameToOverfit == "exit") { return "exit"; }
+      }
+      return nameToOverfit;
+    }
+
     public static string NetworkNameStorePrompt(List<string> networkNames)
     {
       Console.Write("Enter a network to store: ");
@@ -119,6 +134,19 @@ namespace UserPrompts
       }
       while(useSaveDataString != "y" && useSaveDataString != "n");
       return useSaveDataString;
+    }
+
+    public static string LearningRatePrompt()
+    {
+      string learningRateString;
+      do
+      {
+        Console.Write("Enter the learning rate: ");
+        learningRateString = Console.ReadLine();
+        if(learningRateString == "exit") { return "exit"; }
+      }
+      while(!Checks.IsDouble(learningRateString));
+      return learningRateString;
     }
   }
 }
