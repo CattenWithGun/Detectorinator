@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace ErrorChecks
@@ -19,7 +20,7 @@ namespace ErrorChecks
     public static bool IsOption(string option)
     {
       //Goes through the list of commands, and if the option is in there, return that it is a command
-      string[] commands = { "show", "train", "test", "error", "store", "make", "delete", "clear", "help" };
+      string[] commands = { "show", "train", "test", "error", "overfit", "store", "make", "delete", "clear", "help" };
       for(int i = 0; i < commands.Length; i++)
       {
         if(commands[i] == option)
@@ -28,6 +29,19 @@ namespace ErrorChecks
         }
       }
       return false;
+    }
+
+    public static bool IsDouble(string doubleString)
+    {
+      try
+      {
+        Convert.ToDouble(doubleString);
+      }
+      catch
+      {
+        return false;
+      }
+      return true;
     }
   }
 }
