@@ -21,13 +21,13 @@ namespace NeuralNetworking
     public double[,] hiddenLayer2Weights;
 
     //Biases
-    public double inputLayerBiase;
-    public double hiddenLayer1Biase;
-    public double hiddenLayer2Biase;
+    public double[] inputLayerBiases;
+    public double[] hiddenLayer1Biases;
+    public double[] hiddenLayer2Biases;
 
     //Creates neural network with saved data
     [JsonConstructor]
-    public NeuralNetwork(double[] argumentInputLayer, double[] argumentHiddenLayer1, double[] argumentHiddenLayer2, double[] argumentOutputLayer, double[,] argumentInputLayerWeights, double[,] argumentHiddenLayer1Weights, double[,] argumentHiddenLayer2Weights, double argumentInputLayerBiase, double argumentHiddenLayer1Biase, double argumentHiddenLayer2Biase, string argumentName)
+    public NeuralNetwork(double[] argumentInputLayer, double[] argumentHiddenLayer1, double[] argumentHiddenLayer2, double[] argumentOutputLayer, double[,] argumentInputLayerWeights, double[,] argumentHiddenLayer1Weights, double[,] argumentHiddenLayer2Weights, double[] argumentInputLayerBiases, double[] argumentHiddenLayer1Biases, double[] argumentHiddenLayer2Biases, string argumentName)
     {
       inputLayer = argumentInputLayer;
       hiddenLayer1 = argumentHiddenLayer1;
@@ -36,9 +36,9 @@ namespace NeuralNetworking
       inputLayerWeights = argumentInputLayerWeights;
       hiddenLayer1Weights = argumentHiddenLayer1Weights;
       hiddenLayer2Weights = argumentHiddenLayer2Weights;
-      inputLayerBiase = argumentInputLayerBiase;
-      hiddenLayer1Biase = argumentHiddenLayer1Biase;
-      hiddenLayer2Biase = argumentHiddenLayer2Biase;
+      inputLayerBiases = argumentInputLayerBiases;
+      hiddenLayer1Biases = argumentHiddenLayer1Biases;
+      hiddenLayer2Biases = argumentHiddenLayer2Biases;
       name = argumentName;
     }
 
@@ -57,15 +57,26 @@ namespace NeuralNetworking
       hiddenLayer2Weights = Random2DDoubleArray(16, 10, random);
 
 	  //Goofy numbers are making a random double between -1 and 1
-      inputLayerBiase = random.NextDouble() * ((1) - (-1)) + (-1);
-      hiddenLayer1Biase = random.NextDouble() * ((1) - (-1)) + (-1);
-      hiddenLayer2Biase = random.NextDouble() * ((1) - (-1)) + (-1);
+      inputLayerBiases = RandomDoubleArray(16, random);
+      hiddenLayer1Biases = RandomDoubleArray(16, random);
+      hiddenLayer2Biases = RandomDoubleArray(10, random);
       name = argumentName;
     }
 
     public override string ToString()
     {
       return JsonConvert.SerializeObject(this);
+    }
+
+    //Makes a randomized double array
+    private static double[] RandomDoubleArray(int length, Random random)
+    {
+      double[] randomDoubleArray = new double[length];
+      for(int i = 0; i < length; i++)
+      {
+        randomDoubleArray[i] = random.NextDouble() * ((1) - (-1)) + (-1);
+      }
+      return randomDoubleArray;
     }
 
     //Makes a randomized 2D double array
@@ -99,7 +110,7 @@ namespace NeuralNetworking
         {
           currentStep += network.inputLayerWeights[neuronIndex, weightIndex] * network.inputLayer[weightIndex];
         }
-        currentStep += network.inputLayerBiase;
+        currentStep += network.inputLayerBiases[neuronIndex];
         currentStep = Math.Tanh(currentStep);
         network.hiddenLayer1[neuronIndex] = currentStep;
       }
@@ -112,7 +123,7 @@ namespace NeuralNetworking
         {
           currentStep += network.hiddenLayer1Weights[neuronIndex, weightIndex] * network.hiddenLayer1[weightIndex];
         }
-        currentStep += network.hiddenLayer1Biase;
+        currentStep += network.hiddenLayer1Biases[neuronIndex];
         currentStep = Math.Tanh(currentStep);
         network.hiddenLayer2[neuronIndex] = currentStep;
       }
@@ -125,7 +136,7 @@ namespace NeuralNetworking
         {
           currentStep += network.hiddenLayer2Weights[neuronIndex, weightIndex] * network.hiddenLayer2[weightIndex];
         }
-        currentStep += network.hiddenLayer2Biase;
+        currentStep += network.hiddenLayer2Biases[neuronIndex];
         currentStep = Math.Tanh(currentStep);
         network.outputLayer[neuronIndex] = currentStep;
       }
@@ -169,21 +180,32 @@ namespace NeuralNetworking
       }
     }
 
-    public NeuralNetwork BackPropagate(NeuralNetwork network, double[] expectedValues)
+    //Makes 1 gradient descent step
+    public NeuralNetwork BackPropagate(NeuralNetwork network, double[] expectedValues, double learningRate)
     {
-      double learningRate = 0.5;
+      //Backpropagates the connections between hiddenLayer2 and the outputLayer
       double[] errorWithOutputs = BackPropagation.ErrorWithRespectToOutputs(network, expectedValues);
       double[] outputsWithTanh = BackPropagation.OutputsWithRespectToTanh(network);
       double[,] newHiddenLayer2Weights = BackPropagation.NewHiddenLayer2Weights(network, learningRate, errorWithOutputs, outputsWithTanh);
+      double[] newHiddenLayer2Biases = BackPropagation.NewBiases(network.outputLayer, errorWithOutputs, learningRate);
 
-      //Sets the hiddenLayer2Weights to their new values, these aren't set earlier because the partial derivative needs all the extra values the be taken as a given, and not changed yet
-      for(int outputLayerIndex = 0; outputLayerIndex < network.outputLayer.Length; outputLayerIndex++)
-      {
-        for(int hiddenLayer2Index = 0; hiddenLayer2Index < network.hiddenLayer2.Length; hiddenLayer2Index++)
-        {
-          network.hiddenLayer2Weights[outputLayerIndex, hiddenLayer2Index] = newHiddenLayer2Weights[outputLayerIndex, hiddenLayer2Index];
-        }
-      }
+      //Backpropagates the connections between hiddenLayer1 and hiddenLayer2
+      double[] errorWithHiddenLayer2 = BackPropagation.ErrorWithRespectToHiddenLayer2(network, errorWithOutputs, outputsWithTanh);
+      double[] hiddenLayer2WithTanh = BackPropagation.HiddenLayer2WithRespectToTanh(network);
+      double[,] newHiddenLayer1Weights = BackPropagation.NewHiddenLayer1Weights(network, learningRate, errorWithHiddenLayer2, hiddenLayer2WithTanh);
+      double[] newHiddenLayer1Biases = BackPropagation.NewBiases(network.hiddenLayer2, errorWithHiddenLayer2, learningRate);
+
+      //Backpropagates the connections between the inputLayer and hiddenLayer1
+      double[] errorWithHiddenLayer1 = BackPropagation.ErrorWithRespectToHiddenLayer1(network, errorWithHiddenLayer2, hiddenLayer2WithTanh);
+      double[] hiddenLayer1WithTanh = BackPropagation.HiddenLayer1WithRespectToTanh(network);
+      double[,] newInputLayerWeights = BackPropagation.NewInputLayerWeights(network, learningRate, errorWithHiddenLayer1, hiddenLayer1WithTanh);
+      double[] newInputLayerBiases = BackPropagation.NewBiases(network.hiddenLayer1, errorWithHiddenLayer1, learningRate);
+      
+      //Sets the weights to their new values, these aren't set earlier because the partial derivative needs the values to be unchanged
+      network.hiddenLayer2Weights = newHiddenLayer2Weights;
+      network.hiddenLayer1Weights = newHiddenLayer1Weights;
+      network.inputLayerWeights = newInputLayerWeights;
+      
       return network;
     }
   }
