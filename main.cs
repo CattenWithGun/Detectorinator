@@ -37,6 +37,10 @@ public class Program
       {
         Commands.PrintError(networks, networkNames);
       }
+      else if(command == "overfit")
+      {
+        Commands.Overfit(networks, networkNames);
+      }
       else if(command == "store")
       {
         Commands.Store(networks, networkNames);
