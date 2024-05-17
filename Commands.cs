@@ -5,6 +5,7 @@ using NetworkTraining;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using UserPrompts;
 
 namespace Actions
@@ -23,12 +24,17 @@ namespace Actions
       string nameToTrain = Prompts.NetworkNameTrainPrompt(networkNames);
       if(nameToTrain == "exit") { return; }
 
+      //Get the learning rate
+      string learningRateString = Prompts.LearningRatePrompt();
+      if(learningRateString == "exit") { return; }
+      double learningRate = Convert.ToDouble(learningRateString);
+
       //Find the network in the list and train it
       for(int i = 0; i < networks.Count; i++)
       {
         if(networks[i].name == nameToTrain)
         {
-          NeuralNetwork network = Training.TrainNetwork(networks[i]);
+          NeuralNetwork network = Training.TrainNetwork(networks[i], learningRate);
           return;
         }
       }
@@ -109,7 +115,74 @@ namespace Actions
         averageError += errors[i];
       }
       averageError /= errors.Length;      
+
+      //Finds the percent that the network guesses correctly
+      double correctGuesses = 0;
+      for(int i = 0; i < labels.Length; i++)
+      {
+        if(networkToGetErrorOf.FeedForwardAndGetGuess(networkToGetErrorOf, MNISTFileHandler.ImageToByteArray(images, i)) == labels[i])
+        {
+          correctGuesses++;
+        }
+      }
+      double percent = correctGuesses / Convert.ToDouble(labels.Length);
+
+      Console.WriteLine($"The percent the network guessed correctly was {percent * 100}%");
       Console.WriteLine($"The error of {networkToGetErrorOf.name} is: {averageError}");
+    }
+
+    public static void PrintOverfittedError(NeuralNetwork networkToGetErrorOf, byte[] labels, byte[,,] images)
+    {
+      //Finds the average error of the network
+      int numberOfTests = labels.Length;
+      double error = 0;
+      byte[] imageBytes = MNISTFileHandler.ImageToByteArray(images, 0);
+      error = networkToGetErrorOf.Error(networkToGetErrorOf, imageBytes, labels[0]);
+
+      //Prints the average error
+      double averageError = error;
+
+      //Finds the percent that the network guesses correctly
+      double correctGuesses = 0;
+      if(networkToGetErrorOf.FeedForwardAndGetGuess(networkToGetErrorOf, MNISTFileHandler.ImageToByteArray(images, 0)) == labels[0])
+      {
+        correctGuesses = 1;
+      }
+      double percent = correctGuesses;
+
+      Console.WriteLine($"The percent the network guessed correctly was {percent * 100}%");
+      Console.WriteLine($"The error of {networkToGetErrorOf.name} is: {averageError}");
+    }
+
+    public static void Overfit(List<NeuralNetwork> networks, List<string> networkNames)
+    {
+      if(networks.Count == 0)
+      {
+        Console.WriteLine("There are no networks to overfit");
+        return;
+      }
+
+      //Get the name of the network to be overfitted
+      string nameToOverfit = Prompts.NetworkNameOverfitPrompt(networkNames);
+      if(nameToOverfit == "exit") { return; }
+
+      //Get the learning rate
+      string learningRateString = Prompts.LearningRatePrompt();
+      if(learningRateString == "exit") { return; }
+      double learningRate = Convert.ToDouble(learningRateString);
+      
+      //Find the network in the list
+      NeuralNetwork network = new NeuralNetwork("placeholder");
+      for(int i = 0; i < networks.Count; i++)
+      {
+        if(networks[i].name == nameToOverfit)
+        {
+          network = networks[i];
+        }
+      }
+
+      //Overfits the network and shows the overfitted error
+      network = Training.OverfitNetwork(network, learningRate);
     }
 
     public static void Delete(List<NeuralNetwork> networks, List<string> networkNames)
@@ -203,7 +276,8 @@ namespace Actions
         {
           //Serialize
           string json = networks[i].ToString();
-          Console.WriteLine($"Saved {nameToStore} as {json}");
+          File.WriteAllText("/home/runner/NeuralNetwork/NetworkFile.txt", json);
+          Console.WriteLine($"Saved {nameToStore} in /home/runner/NeuralNetwork/NetworkFile.txt");
           return;
         }
       }
@@ -216,6 +290,7 @@ namespace Actions
       Console.WriteLine("Train neural network:             train");
       Console.WriteLine("Test the network:                 test");
       Console.WriteLine("Get the error of the network:     error");
+      Console.WriteLine("Overfit the network:              overfit");
       Console.WriteLine("Store neural network:             store");
       Console.WriteLine("Make new neural network:          make");
       Console.WriteLine("Delete neural network:            delete");
